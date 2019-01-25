@@ -154,6 +154,8 @@ namespace Standalone_UploadExcelToDatabaseLibrary
             Marshal.FinalReleaseComObject(worksheet);
             Marshal.FinalReleaseComObject(workbook);
             Marshal.FinalReleaseComObject(excelApp);
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
 
             return columnNames;
 
@@ -384,6 +386,10 @@ namespace Standalone_UploadExcelToDatabaseLibrary
             Marshal.FinalReleaseComObject(worksheet);
             Marshal.FinalReleaseComObject(workbook);
             Marshal.FinalReleaseComObject(myExcel);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
 
             return excelSheet;
 
