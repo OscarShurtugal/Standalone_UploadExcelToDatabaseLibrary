@@ -15,6 +15,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
     public class UploadExcelToDatabaseMethods
     {
 
+
         /// <summary>
         /// This method will try to upload an Excel file to a certain table in a database.
         /// In order to succeed the Excel Column names and number MUST match with the ones on the table, if that's not the case
@@ -24,7 +25,16 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// <param name="databaseConnectionString"></param>
         /// <param name="tableName"></param>
         /// <returns>string with the result of the process, either Successful or Unsuccessful</returns>
-        public string VerifiedDataAndUploadToDatabase(string pathToExcelFile, string databaseConnectionString, string tableName)
+        /// <summary>
+        /// This method will try to upload an Excel file to a certain table in a database.
+        /// In order to succeed the Excel Column names and number MUST match with the ones on the table, if that's not the case
+        /// It will return the reason / cause of the failure
+        /// </summary>
+        /// <param name="pathToExcelFile"></param>
+        /// <param name="databaseConnectionString"></param>
+        /// <param name="tableName"></param>
+        /// <returns>string with the result of the process, either Successful or Unsuccessful</returns>
+        public  string VerifiedDataAndUploadToDatabase(string pathToExcelFile, string databaseConnectionString, string tableName, int columnsToIgnore)
         {
             int excelRows = GetTotalAmountOfRowsInExcel(pathToExcelFile)-1;
             int dataBasePreviousRows = countDataBaseTableColumns(tableName, databaseConnectionString);
@@ -34,7 +44,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
             List<string> excelColumNames = getExcelColumnNames(pathToExcelFile);
             List<string> databaseColumnNames = getDataBaseTableColumns(databaseConnectionString, tableName);
 
-            string comparationTest = CompareColumnsBetweenSystems(excelColumNames, databaseColumnNames);
+            string comparationTest = CompareColumnsBetweenSystems(excelColumNames, databaseColumnNames, columnsToIgnore);
 
             if (comparationTest!="Approved")
             {
@@ -56,12 +66,11 @@ namespace Standalone_UploadExcelToDatabaseLibrary
             }
             else
             {
-                return "Upload Unsuccessful, missing: "+(dataBaseNewRows-dataBasePreviousRows);
+                return "Upload Unsuccessful, missing: "+(dataBaseNewRows-dataBasePreviousRows+excelRows);
             }
 
             //return "";
         }
-
 
 
         /// <summary>
@@ -70,9 +79,9 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// <param name="tableName"></param>
         /// <param name="databaseConnectionString"></param>
         /// <returns>integer with the register count found</returns>
-        private int countDataBaseTableColumns(string tableName, string databaseConnectionString)
+        private  int countDataBaseTableColumns(string tableName, string databaseConnectionString)
         {
-            string query = "SELECT COUNT(*) FROM "+tableName;
+            string query = "SELECT COUNT(*) FROM ["+tableName+"]";
             int count = 0;
             using (SqlConnection con = GetConnectionDevDataBase(databaseConnectionString))
             {
@@ -94,8 +103,10 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// <param name="excelColumns"></param>
         /// <param name="dataBaseColumns"></param>
         /// <returns>string with comparation result</returns>
-        private string CompareColumnsBetweenSystems(List<string> excelColumns, List<string> dataBaseColumns)
+        private  string CompareColumnsBetweenSystems(List<string> excelColumns, List<string> dataBaseColumns, int columnsToIgnore)
         {
+
+
             if (excelColumns.Count==0)
             {
                 return "Excel File either had 1 column blank at the start or was empty.";
@@ -106,15 +117,16 @@ namespace Standalone_UploadExcelToDatabaseLibrary
                 return "The Data Base column Count was zero, please check if your table name was correct.";
             }
 
-            if (dataBaseColumns.Count!=excelColumns.Count)
+            if ((dataBaseColumns.Count-columnsToIgnore)!=excelColumns.Count)
             {
                 return "Found: "+dataBaseColumns.Count+" Columns in the database and: "+excelColumns.Count+" columns in the excel file, they don't match, process aborted.";
             }
 
-            for (int i = 0; i<dataBaseColumns.Count; i++)
+            for (int i = 0; i<(dataBaseColumns.Count-columnsToIgnore); i++)
             {
                 if (dataBaseColumns[i]!=excelColumns[i])
                 {
+
                     return "There was a mismatch in the order of columns from the Excel File towards the database. Column in DB: "+dataBaseColumns[i].ToString()+" Column at the Excel File: "+excelColumns[i].ToString();
                 }
             }
@@ -128,7 +140,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// </summary>
         /// <param name="pathToFile"></param>
         /// <returns></returns>
-        private List<string> getExcelColumnNames(string pathToFile)
+        private  List<string> getExcelColumnNames(string pathToFile)
         {
             Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
             Microsoft.Office.Interop.Excel.Workbook workbook = excelApp.Workbooks.Open(pathToFile);
@@ -169,7 +181,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// <param name="databaseConnectionString"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        private List<string> getDataBaseTableColumns(string databaseConnectionString, string tableName)
+        private  List<string> getDataBaseTableColumns(string databaseConnectionString, string tableName)
         {
             List<string> columnNames = new List<string>();
             //Console.WriteLine("Getting db connection...");
@@ -234,7 +246,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// <param name="databaseConnectionString"></param>
         /// <param name="tableName"></param>
         /// <returns>String with "Success" or the error message</returns>
-        private string uploadFileToDatabase(string filePath, string excelSheetName, string databaseConnectionString, string tableName)
+        private  string uploadFileToDatabase(string filePath, string excelSheetName, string databaseConnectionString, string tableName)
         {
 
 
@@ -242,6 +254,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
 
             String excelConnString = String.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0;HDR=YES\"", filePath);
             //Create Connection to Excel work book 
+
 
             try
             {
@@ -257,11 +270,16 @@ namespace Standalone_UploadExcelToDatabaseLibrary
 
                         using (OleDbDataReader dReader = cmd.ExecuteReader())
                         {
+                            //Console.WriteLine(strConnection);
                             using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection))
                             {
+                                sqlBulk.BulkCopyTimeout=0;
+
                                 //Give your Destination table name 
+                                tableName="["+tableName+"]";
                                 sqlBulk.DestinationTableName=tableName;
                                 sqlBulk.WriteToServer(dReader);
+
                             }
                         }
                     }
@@ -284,7 +302,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// </summary>
         /// <param name="pathToExcel"></param>
         /// <returns>Integer with the total amount of rows</returns>
-        private int GetTotalAmountOfRowsInExcel(string pathToExcel)
+        private  int GetTotalAmountOfRowsInExcel(string pathToExcel)
         {
             //Se crea una instancia de una aplicación de Excel
             Microsoft.Office.Interop.Excel.Application myExcel = new Microsoft.Office.Interop.Excel.Application();
@@ -352,7 +370,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// Conexión a la base de datos
         /// </summary>
         /// <returns></returns>
-        private SqlConnection GetConnectionDevDataBase(string databaseConnectionString)
+        private  SqlConnection GetConnectionDevDataBase(string databaseConnectionString)
         {
             return new SqlConnection(databaseConnectionString);
         }
@@ -362,7 +380,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         /// </summary>
         /// <param name="pathToExcelFile"></param>
         /// <returns>String with the name of the Active Sheet</returns>
-        private string getExcelActiveSheetName(string pathToExcelFile)
+        private  string getExcelActiveSheetName(string pathToExcelFile)
         {
 
 
@@ -390,10 +408,73 @@ namespace Standalone_UploadExcelToDatabaseLibrary
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
-
             return excelSheet;
 
         }
+
+
+
+        /// <summary>
+        /// STANDALONE VERSION OF THE UPLOAD METHOD
+        /// The method will perform a query to the excel file selecting everything and upload it to the designed table in the database
+        /// using a bulk upload operation
+        /// It also calls the "Get excel active sheet name" so the user doesn't needs to obtain it later 
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="excelSheetName"></param>
+        /// <param name="databaseConnectionString"></param>
+        /// <param name="tableName"></param>
+        /// <returns>String with "Success" or the error message</returns>
+        public string standaloneUploadFileToDatabase(string filePath, string databaseConnectionString, string tableName)
+        {
+            string excelSheetName = getExcelActiveSheetName(filePath);
+
+            string strConnection = databaseConnectionString;
+
+            String excelConnString = String.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0;HDR=YES\"", filePath);
+            //Create Connection to Excel work book 
+
+
+            try
+            {
+                using (OleDbConnection excelConnection = new OleDbConnection(excelConnString))
+                {
+                    //Create OleDbCommand to fetch data from Excel 
+
+                    using (OleDbCommand cmd = new OleDbCommand("Select * from ["+excelSheetName+"$]", excelConnection))
+                    {
+
+                        excelConnection.Open();
+
+
+                        using (OleDbDataReader dReader = cmd.ExecuteReader())
+                        {
+                            //Console.WriteLine(strConnection);
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection))
+                            {
+                                sqlBulk.BulkCopyTimeout=0;
+
+                                //Give your Destination table name 
+                                tableName="["+tableName+"]";
+                                sqlBulk.DestinationTableName=tableName;
+                                sqlBulk.WriteToServer(dReader);
+
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                return e.Message;
+            }
+
+            return "Success";
+        }
+
+
 
     }
 
