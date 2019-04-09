@@ -458,7 +458,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
                                 tableName="["+tableName+"]";
                                 sqlBulk.DestinationTableName=tableName;
                                 sqlBulk.WriteToServer(dReader);
-
+                                    
                             }
                         }
                     }
@@ -475,6 +475,66 @@ namespace Standalone_UploadExcelToDatabaseLibrary
         }
 
 
+
+        /// <summary>
+        /// STANDALONE VERSION OF THE UPLOAD METHOD
+        /// The method will perform a query to the excel file selecting everything and upload it to the designed table in the database
+        /// using a bulk upload operation
+        /// It takes the sheetName as parameter
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="excelSheetName"></param>
+        /// <param name="databaseConnectionString"></param>
+        /// <param name="tableName"></param>
+        /// <returns>String with "Success" or the error message</returns>
+        public string standaloneUploadFileToDatabase(string filePath, string databaseConnectionString, string tableName, string excelSheetName)
+        {
+
+            string strConnection = databaseConnectionString;
+
+            String excelConnString = String.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0;HDR=YES\"", filePath);
+            //Create Connection to Excel work book 
+
+
+            try
+            {
+                using (OleDbConnection excelConnection = new OleDbConnection(excelConnString))
+                {
+                    //Create OleDbCommand to fetch data from Excel 
+
+                    using (OleDbCommand cmd = new OleDbCommand("Select * from ["+excelSheetName+"$]", excelConnection))
+                    {
+
+                        excelConnection.Open();
+
+
+                        using (OleDbDataReader dReader = cmd.ExecuteReader())
+                        {
+                            //Console.WriteLine(strConnection);
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection))
+                            {
+                                sqlBulk.BulkCopyTimeout=0;
+
+                                //Give your Destination table name 
+                                tableName="["+tableName+"]";
+                                sqlBulk.DestinationTableName=tableName;
+                                sqlBulk.WriteToServer(dReader);
+
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                return e.Message;
+            }
+
+            return "Success";
+        }
+               
 
     }
 
