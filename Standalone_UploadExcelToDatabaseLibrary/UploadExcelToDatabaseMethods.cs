@@ -271,7 +271,8 @@ namespace Standalone_UploadExcelToDatabaseLibrary
                         using (OleDbDataReader dReader = cmd.ExecuteReader())
                         {
                             //Console.WriteLine(strConnection);
-                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection))
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection, SqlBulkCopyOptions.FireTriggers))
                             {
                                 sqlBulk.BulkCopyTimeout=0;
 
@@ -450,7 +451,8 @@ namespace Standalone_UploadExcelToDatabaseLibrary
                         using (OleDbDataReader dReader = cmd.ExecuteReader())
                         {
                             //Console.WriteLine(strConnection);
-                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection))
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection, SqlBulkCopyOptions.FireTriggers))
                             {
                                 sqlBulk.BulkCopyTimeout=0;
 
@@ -511,7 +513,8 @@ namespace Standalone_UploadExcelToDatabaseLibrary
                         using (OleDbDataReader dReader = cmd.ExecuteReader())
                         {
                             //Console.WriteLine(strConnection);
-                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection))
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection,SqlBulkCopyOptions.FireTriggers))
                             {
                                 sqlBulk.BulkCopyTimeout=0;
 
@@ -519,6 +522,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
                                 tableName="["+tableName+"]";
                                 sqlBulk.DestinationTableName=tableName;
                                 sqlBulk.WriteToServer(dReader);
+                                
 
                             }
                         }
@@ -571,8 +575,9 @@ namespace Standalone_UploadExcelToDatabaseLibrary
 
                         using (OleDbDataReader dReader = cmd.ExecuteReader())
                         {
-                            //Console.WriteLine(strConnection);
-                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection))
+                            //Console.WriteLine(strConnection); 
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection, SqlBulkCopyOptions.FireTriggers))
                             {
                                 sqlBulk.BulkCopyTimeout=0;
 
@@ -631,7 +636,8 @@ namespace Standalone_UploadExcelToDatabaseLibrary
                         using (OleDbDataReader dReader = cmd.ExecuteReader())
                         {
                             //Console.WriteLine(strConnection);
-                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection))
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection, SqlBulkCopyOptions.FireTriggers))
                             {
                                 sqlBulk.BulkCopyTimeout=0;
 
