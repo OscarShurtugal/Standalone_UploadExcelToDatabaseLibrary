@@ -475,9 +475,7 @@ namespace Standalone_UploadExcelToDatabaseLibrary
 
             return "Success";
         }
-
-
-
+        
         /// <summary>
         /// STANDALONE VERSION OF THE UPLOAD METHOD
         /// The method will perform a query to the excel file selecting everything and upload it to the designed table in the database
@@ -661,6 +659,259 @@ namespace Standalone_UploadExcelToDatabaseLibrary
             return "Success";
         }
 
+
+        /*
+ 
+         VERSION PARA COE SIN CORCHETES
+        
+          
+         */
+
+
+        /// <summary>
+        /// STANDALONE VERSION OF THE UPLOAD METHOD. Without Brackets
+        /// The method will perform a query to the excel file selecting everything and upload it to the designed table in the database
+        /// using a bulk upload operation
+        /// It also calls the "Get excel active sheet name" so the user doesn't needs to obtain it later 
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="excelSheetName"></param>
+        /// <param name="databaseConnectionString"></param>
+        /// <param name="tableName"></param>
+        /// <returns>String with "Success" or the error message</returns>
+        public string standaloneUploadFileToDatabaseNoBrackets(string filePath, string databaseConnectionString, string tableName)
+        {
+            string excelSheetName = getExcelActiveSheetName(filePath);
+
+            string strConnection = databaseConnectionString;
+
+            String excelConnString = String.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0;HDR=YES\"", filePath);
+            //Create Connection to Excel work book 
+
+
+            try
+            {
+                using (OleDbConnection excelConnection = new OleDbConnection(excelConnString))
+                {
+                    //Create OleDbCommand to fetch data from Excel 
+
+                    using (OleDbCommand cmd = new OleDbCommand("Select * from ["+excelSheetName+"$]", excelConnection))
+                    {
+
+                        excelConnection.Open();
+
+
+                        using (OleDbDataReader dReader = cmd.ExecuteReader())
+                        {
+                            //Console.WriteLine(strConnection);
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection, SqlBulkCopyOptions.FireTriggers))
+                            {
+                                sqlBulk.BulkCopyTimeout=0;
+
+                                //Give your Destination table name 
+                                tableName=""+tableName+"";
+                                sqlBulk.DestinationTableName=tableName;
+                                sqlBulk.WriteToServer(dReader);
+
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                return e.Message;
+            }
+
+            return "Success";
+        }
+
+        /// <summary>
+        /// STANDALONE VERSION OF THE UPLOAD METHOD. No Brackets
+        /// The method will perform a query to the excel file selecting everything and upload it to the designed table in the database
+        /// using a bulk upload operation
+        /// It takes the sheetName as parameter
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="excelSheetName"></param>
+        /// <param name="databaseConnectionString"></param>
+        /// <param name="tableName"></param>
+        /// <returns>String with "Success" or the error message</returns>
+        public string standaloneUploadFileToDatabaseNoBrackets(string filePath, string databaseConnectionString, string tableName, string excelSheetName)
+        {
+
+            string strConnection = databaseConnectionString;
+
+            String excelConnString = String.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0;HDR=YES\"", filePath);
+            //Create Connection to Excel work book 
+
+
+            try
+            {
+                using (OleDbConnection excelConnection = new OleDbConnection(excelConnString))
+                {
+                    //Create OleDbCommand to fetch data from Excel 
+
+                    using (OleDbCommand cmd = new OleDbCommand("Select * from ["+excelSheetName+"$]", excelConnection))
+                    {
+
+                        excelConnection.Open();
+
+
+                        using (OleDbDataReader dReader = cmd.ExecuteReader())
+                        {
+                            //Console.WriteLine(strConnection);
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection, SqlBulkCopyOptions.FireTriggers))
+                            {
+                                sqlBulk.BulkCopyTimeout=0;
+
+                                //Give your Destination table name 
+                                tableName=""+tableName+"";
+                                sqlBulk.DestinationTableName=tableName;
+                                sqlBulk.WriteToServer(dReader);
+
+
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                return e.Message;
+            }
+
+            return "Success";
+        }
+
+        /// <summary>
+        /// STANDALONE VERSION OF THE UPLOAD METHOD wITHOUT BRACKETS
+        /// The method will perform a query to the excel file selecting everything and upload it to the designed table in the database
+        /// using a bulk upload operation
+        /// It also calls the "Get excel active sheet name" so the user doesn't needs to obtain it later
+        /// THIS METHOD uploads excel Files that has no headers, that is, that have information from the first row
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="excelSheetName"></param>
+        /// <param name="databaseConnectionString"></param>
+        /// <param name="tableName"></param>
+        /// <returns>String with "Success" or the error message</returns>
+        public string standaloneUploadFileToDatabaseNoHeadersNoBrackets(string filePath, string databaseConnectionString, string tableName)
+        {
+            string excelSheetName = getExcelActiveSheetName(filePath);
+
+            string strConnection = databaseConnectionString;
+
+            String excelConnString = String.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0;HDR=NO\"", filePath);
+            //Create Connection to Excel work book 
+
+
+            try
+            {
+                using (OleDbConnection excelConnection = new OleDbConnection(excelConnString))
+                {
+                    //Create OleDbCommand to fetch data from Excel 
+
+                    using (OleDbCommand cmd = new OleDbCommand("Select * from ["+excelSheetName+"$]", excelConnection))
+                    {
+
+                        excelConnection.Open();
+
+
+                        using (OleDbDataReader dReader = cmd.ExecuteReader())
+                        {
+                            //Console.WriteLine(strConnection); 
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection, SqlBulkCopyOptions.FireTriggers))
+                            {
+                                sqlBulk.BulkCopyTimeout=0;
+
+                                //Give your Destination table name 
+                                tableName=""+tableName+"";
+                                sqlBulk.DestinationTableName=tableName;
+                                sqlBulk.WriteToServer(dReader);
+
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                return e.Message;
+            }
+
+            return "Success";
+        }
+
+
+        /// <summary>
+        /// STANDALONE VERSION OF THE UPLOAD METHOD Without Brackets
+        /// The method will perform a query to the excel file selecting everything and upload it to the designed table in the database
+        /// using a bulk upload operation
+        /// It takes the sheetName as parameter
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="excelSheetName"></param>
+        /// <param name="databaseConnectionString"></param>
+        /// <param name="tableName"></param>
+        /// <returns>String with "Success" or the error message</returns>
+        public string standaloneUploadFileToDatabaseNoHeadersNoBrackets(string filePath, string databaseConnectionString, string tableName, string excelSheetName)
+        {
+
+            string strConnection = databaseConnectionString;
+
+            String excelConnString = String.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0;HDR=NO\"", filePath);
+            //Create Connection to Excel work book 
+
+
+            try
+            {
+                using (OleDbConnection excelConnection = new OleDbConnection(excelConnString))
+                {
+                    //Create OleDbCommand to fetch data from Excel 
+
+                    using (OleDbCommand cmd = new OleDbCommand("Select * from ["+excelSheetName+"$]", excelConnection))
+                    {
+
+                        excelConnection.Open();
+
+
+                        using (OleDbDataReader dReader = cmd.ExecuteReader())
+                        {
+                            //Console.WriteLine(strConnection);
+                            //Se agregó el parámetro "FireTriggers" para poder disparar los triggers on insert en las tablas de BD
+                            using (SqlBulkCopy sqlBulk = new SqlBulkCopy(strConnection, SqlBulkCopyOptions.FireTriggers))
+                            {
+                                sqlBulk.BulkCopyTimeout=0;
+
+                                //Give your Destination table name 
+                                tableName=""+tableName+"";
+                                sqlBulk.DestinationTableName=tableName;
+                                sqlBulk.WriteToServer(dReader);
+
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                return e.Message;
+            }
+
+            return "Success";
+        }
 
 
     }
